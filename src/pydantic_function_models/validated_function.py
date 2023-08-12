@@ -20,7 +20,7 @@ from pydantic.errors import PydanticUserError
 from pydantic.functional_validators import field_validator
 from pydantic.main import BaseModel, create_model
 
-__all__ = ("validate_arguments",)
+__all__ = ["validate_arguments", "ValidatedFunction"]
 
 assert sys.version_info >= (3, 10), "typing.get_type_hints needs Python 3.10+"
 
