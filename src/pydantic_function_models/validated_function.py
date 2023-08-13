@@ -39,8 +39,8 @@ class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
         f_sig = signature(function)
         parameters: Mapping[str, Parameter] = f_sig.parameters
-        param_models = Signature.model_validate(f_sig, from_attributes=True).parameters
-        param_models
+        self.p_models = Signature.model_validate(f_sig, from_attributes=True).parameters
+        self.p_models
 
         self.raw_function = function
         self.arg_mapping: dict[int, str] = {}
@@ -57,7 +57,6 @@ class ValidatedFunction:
                 annotation = Any
             else:
                 annotation = type_hints[name]
-
             default = ... if p.default is p.empty else p.default
             if p.kind == Parameter.POSITIONAL_ONLY:
                 self.arg_mapping[i] = name
@@ -79,23 +78,18 @@ class ValidatedFunction:
                 self.v_kwargs_name = name
                 fields[name] = dict[str, annotation], None  # type: ignore[valid-type]
                 takes_kwargs = True
-
         # these checks avoid a clash between "args" and a field with that name
         if not takes_args and self.v_args_name in fields:
             self.v_args_name = ALT_V_ARGS
-
         # same with "kwargs"
         if not takes_kwargs and self.v_kwargs_name in fields:
             self.v_kwargs_name = ALT_V_KWARGS
-
         if not takes_args:
             # we add the field so validation below can raise the correct exception
             fields[self.v_args_name] = List[Any], None
-
         if not takes_kwargs:
             # same with kwargs
             fields[self.v_kwargs_name] = Dict[Any, Any], None
-
         self.create_model(fields, takes_args, takes_kwargs)
 
     def init_model_instance(self, *args: Any, **kwargs: Any) -> BaseModel:

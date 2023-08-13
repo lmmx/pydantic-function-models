@@ -1,5 +1,5 @@
 from inspect import _ParameterKind
-from typing import Any, Collection, Literal, Mapping, Union
+from typing import Any, Collection, Literal, Mapping, Optional, Union
 
 from pydantic import BaseModel, RootModel, field_validator
 
@@ -14,6 +14,7 @@ ParameterName = Union[ReservedParameterName, str]
 
 
 class Parameter(BaseModel):
+    _index: Optional[int] = None
     name: ParameterName
     annotation: Any  # | inspect.Parameter._empty
     default: Any  # | inspect.Parameter._empty
@@ -35,6 +36,13 @@ class Signature(BaseModel):
     @classmethod
     def listify(cls, parameters: Mapping) -> Collection:
         return parameters.values()
+
+    @field_validator("parameters", mode="after")
+    @classmethod
+    def add_index(cls, parameters: list[Parameter]) -> list[Parameter]:
+        for i, p in enumerate(parameters):
+            p._index = i
+        return parameters
 
 
 # class _ParameterKind(IntEnum):

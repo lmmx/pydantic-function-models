@@ -15,6 +15,7 @@ def test_validated_function(expected):
     t = type(f.model)
     assert str(t.__module__) == "pydantic._internal._model_construction"
     assert str(t.__name__) == "ModelMetaclass"
+    assert f.p_models
 
 
 def test_invalid_signature():
