@@ -86,8 +86,6 @@ class ValidatedFunction:
             self.sig_model.takes_args,
             self.sig_model.takes_kwargs,
         )
-        assert self.v_args_name == self.sig_model.v_args_name
-        assert self.v_kwargs_name == self.sig_model.v_kwargs_name
 
     def build_values(
         self,
