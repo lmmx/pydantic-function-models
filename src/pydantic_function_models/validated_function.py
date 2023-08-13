@@ -1,14 +1,12 @@
 import sys
-from inspect import Parameter, signature
+from inspect import signature
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     List,
-    Mapping,
     Optional,
-    Tuple,
     TypeVar,
     get_type_hints,
 )
@@ -38,7 +36,6 @@ V_DUPLICATE_KWARGS = "v__duplicate_kwargs"
 class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
         sig = signature(function)
-        parameters: Mapping[str, Parameter] = sig.parameters
         type_hints: dict[str, Any] = get_type_hints(function, include_extras=True)
         self.sig_model = Signature.model_validate(
             sig,
@@ -46,45 +43,8 @@ class ValidatedFunction:
             context=type_hints,
         )
         self.source_name = function.__name__
-        self.v_args_name = "args"
-        self.v_kwargs_name = "kwargs"
-        fields: dict[str, tuple[Any, Any]] = {}
-        for i, (name, p) in enumerate(parameters.items()):
-            if p.annotation is p.empty:
-                annotation = Any
-            else:
-                annotation = type_hints[name]
-            default = ... if p.default is p.empty else p.default
-            if p.kind == Parameter.POSITIONAL_ONLY:
-                fields[name] = annotation, default
-                fields[V_POSITIONAL_ONLY_NAME] = List[str], None
-            elif p.kind == Parameter.POSITIONAL_OR_KEYWORD:
-                fields[name] = annotation, default
-                fields[V_DUPLICATE_KWARGS] = List[str], None
-            elif p.kind == Parameter.KEYWORD_ONLY:
-                fields[name] = annotation, default
-            elif p.kind == Parameter.VAR_POSITIONAL:
-                self.v_args_name = name
-                fields[name] = Tuple[annotation, ...], None
-            else:
-                assert p.kind == Parameter.VAR_KEYWORD, p.kind
-                self.v_kwargs_name = name
-                fields[name] = dict[str, annotation], None  # type: ignore[valid-type]
-        # these checks avoid a clash between "args" and a field with that name
-        if not self.sig_model.takes_args and self.v_args_name in fields:
-            self.v_args_name = ALT_V_ARGS
-        # same with "kwargs"
-        if not self.sig_model.takes_kwargs and self.v_kwargs_name in fields:
-            self.v_kwargs_name = ALT_V_KWARGS
-        if not self.sig_model.takes_args:
-            # we add the field so validation below can raise the correct exception
-            fields[self.v_args_name] = List[Any], None
-        if not self.sig_model.takes_kwargs:
-            # same with kwargs
-            fields[self.v_kwargs_name] = Dict[Any, Any], None
-        self.fields = fields
         self.create_model(
-            self.fields,
+            self.sig_model.fields,
             self.sig_model.takes_args,
             self.sig_model.takes_kwargs,
         )
@@ -106,7 +66,7 @@ class ValidatedFunction:
                 if arg_name is not None:
                     values[arg_name] = a
                 else:
-                    values[self.v_args_name] = [a] + [a for _, a in arg_iter]
+                    values[self.sig_model.v_args_name] = [a] + [a for _, a in arg_iter]
                     break
 
         var_kwargs: dict[str, Any] = {}
@@ -115,11 +75,11 @@ class ValidatedFunction:
         fields_alias = [
             field.alias
             for name, field in self.model.model_fields.items()
-            if name not in (self.v_args_name, self.v_kwargs_name)
+            if name not in (self.sig_model.v_args_name, self.sig_model.v_kwargs_name)
         ]
         non_var_fields = set(self.model.model_fields) - {
-            self.v_args_name,
-            self.v_kwargs_name,
+            self.sig_model.v_args_name,
+            self.sig_model.v_kwargs_name,
         }
         for k, v in kwargs.items():
             if k in non_var_fields or k in fields_alias:
@@ -132,7 +92,7 @@ class ValidatedFunction:
                 var_kwargs[k] = v
 
         if var_kwargs:
-            values[self.v_kwargs_name] = var_kwargs
+            values[self.sig_model.v_kwargs_name] = var_kwargs
         if wrong_positional_args:
             values[V_POSITIONAL_ONLY_NAME] = wrong_positional_args
         if duplicate_kwargs:
@@ -148,7 +108,7 @@ class ValidatedFunction:
         pos_args = len(self.sig_model.arg_mapping)
 
         class DecoratorBaseModel(BaseModel):
-            @field_validator(self.v_args_name, check_fields=False)
+            @field_validator(self.sig_model.v_args_name, check_fields=False)
             @classmethod
             def check_args(cls, v: Optional[List[Any]]) -> Optional[List[Any]]:
                 if takes_args or v is None:
@@ -158,7 +118,7 @@ class ValidatedFunction:
                     f"{pos_args} positional arguments expected but {pos_args + len(v)} given",
                 )
 
-            @field_validator(self.v_kwargs_name, check_fields=False)
+            @field_validator(self.sig_model.v_kwargs_name, check_fields=False)
             @classmethod
             def check_kwargs(
                 cls,

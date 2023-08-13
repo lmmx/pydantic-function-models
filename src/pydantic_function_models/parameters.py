@@ -1,3 +1,4 @@
+from inspect import Parameter as _Parameter
 from inspect import _ParameterKind as Kind
 from typing import Any, Collection, Dict, List, Literal, Mapping, Tuple, Union
 
@@ -144,8 +145,8 @@ class Signature(BaseModel):
 
     @field_validator("parameters", mode="before")
     @classmethod
-    def listify(cls, parameters: Mapping) -> Collection:
-        return parameters.values()
+    def listify(cls, params: Mapping[str, _Parameter]) -> Collection[_Parameter]:
+        return params.values()
 
     @field_validator("parameters", mode="after")
     @classmethod
