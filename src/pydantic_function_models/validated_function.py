@@ -43,8 +43,6 @@ class ValidatedFunction:
         self.sig_model
 
         self.raw_function = function
-        self.v_args_name = "args"
-        self.v_kwargs_name = "kwargs"
 
         type_hints = get_type_hints(function, include_extras=True)
         fields: dict[str, tuple[Any, Any]] = {}
@@ -63,11 +61,9 @@ class ValidatedFunction:
             elif p.kind == Parameter.KEYWORD_ONLY:
                 fields[name] = annotation, default
             elif p.kind == Parameter.VAR_POSITIONAL:
-                self.v_args_name = name
                 fields[name] = Tuple[annotation, ...], None
             else:
                 assert p.kind == Parameter.VAR_KEYWORD, p.kind
-                self.v_kwargs_name = name
                 fields[name] = dict[str, annotation], None  # type: ignore[valid-type]
         # these checks avoid a clash between "args" and a field with that name
         if not self.sig_model.takes_args and self.v_args_name in fields:
@@ -86,8 +82,6 @@ class ValidatedFunction:
             self.sig_model.takes_args,
             self.sig_model.takes_kwargs,
         )
-        assert self.v_args_name == self.sig_model.v_args_name
-        assert self.v_kwargs_name == self.sig_model.v_kwargs_name
 
     def build_values(
         self,
