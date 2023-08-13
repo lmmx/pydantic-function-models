@@ -39,11 +39,10 @@ class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
         f_sig = signature(function)
         parameters: Mapping[str, Parameter] = f_sig.parameters
-        self.p_models = Signature.model_validate(f_sig, from_attributes=True).parameters
-        self.p_models
+        self.sig_model = Signature.model_validate(f_sig, from_attributes=True)
+        self.sig_model
 
         self.raw_function = function
-        self.arg_mapping: dict[int, str] = {}
         self.positional_only_args: set[str] = set()
         self.v_args_name = "args"
         self.v_kwargs_name = "kwargs"
@@ -59,12 +58,10 @@ class ValidatedFunction:
                 annotation = type_hints[name]
             default = ... if p.default is p.empty else p.default
             if p.kind == Parameter.POSITIONAL_ONLY:
-                self.arg_mapping[i] = name
                 fields[name] = annotation, default
                 fields[V_POSITIONAL_ONLY_NAME] = List[str], None
                 self.positional_only_args.add(name)
             elif p.kind == Parameter.POSITIONAL_OR_KEYWORD:
-                self.arg_mapping[i] = name
                 fields[name] = annotation, default
                 fields[V_DUPLICATE_KWARGS] = List[str], None
             elif p.kind == Parameter.KEYWORD_ONLY:
@@ -92,14 +89,6 @@ class ValidatedFunction:
             fields[self.v_kwargs_name] = Dict[Any, Any], None
         self.create_model(fields, takes_args, takes_kwargs)
 
-    def init_model_instance(self, *args: Any, **kwargs: Any) -> BaseModel:
-        values = self.build_values(args, kwargs)
-        return self.model(**values)
-
-    def call(self, *args: Any, **kwargs: Any) -> Any:
-        m = self.init_model_instance(*args, **kwargs)
-        return self.execute(m)
-
     def build_values(
         self,
         args: tuple[Any, ...],
@@ -113,7 +102,7 @@ class ValidatedFunction:
                     i, a = next(arg_iter)
                 except StopIteration:
                     break
-                arg_name = self.arg_mapping.get(i)
+                arg_name = self.sig_model.arg_mapping.get(i)
                 if arg_name is not None:
                     values[arg_name] = a
                 else:
@@ -150,46 +139,13 @@ class ValidatedFunction:
             values[V_DUPLICATE_KWARGS] = duplicate_kwargs
         return values
 
-    def execute(self, m: BaseModel) -> Any:
-        d = {
-            k: v
-            for k, v in m.__dict__.items()
-            if k in m.__pydantic_fields_set__ or m.model_fields[k].default_factory
-        }
-        var_kwargs = d.pop(self.v_kwargs_name, {})
-
-        if self.v_args_name in d:
-            args_: list[Any] = []
-            in_kwargs = False
-            kwargs = {}
-            for name, value in d.items():
-                if in_kwargs:
-                    kwargs[name] = value
-                elif name == self.v_args_name:
-                    args_ += value
-                    in_kwargs = True
-                else:
-                    args_.append(value)
-            return self.raw_function(*args_, **kwargs, **var_kwargs)
-        elif self.positional_only_args:
-            args_ = []
-            kwargs = {}
-            for name, value in d.items():
-                if name in self.positional_only_args:
-                    args_.append(value)
-                else:
-                    kwargs[name] = value
-            return self.raw_function(*args_, **kwargs, **var_kwargs)
-        else:
-            return self.raw_function(**d, **var_kwargs)
-
     def create_model(
         self,
         fields: dict[str, Any],
         takes_args: bool,
         takes_kwargs: bool,
     ) -> None:
-        pos_args = len(self.arg_mapping)
+        pos_args = len(self.sig_model.arg_mapping)
 
         class DecoratorBaseModel(BaseModel):
             @field_validator(self.v_args_name, check_fields=False)
