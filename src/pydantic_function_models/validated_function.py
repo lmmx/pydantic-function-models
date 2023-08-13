@@ -20,7 +20,7 @@ from pydantic.errors import PydanticUserError
 from pydantic.functional_validators import field_validator
 from pydantic.main import BaseModel, create_model
 
-__all__ = ["validate_arguments", "ValidatedFunction"]
+__all__ = ["ValidatedFunction"]
 
 assert sys.version_info >= (3, 10), "typing.get_type_hints needs Python 3.10+"
 
@@ -28,38 +28,6 @@ if TYPE_CHECKING:
     AnyCallable = Callable[..., Any]
 
     AnyCallableT = TypeVar("AnyCallableT", bound=AnyCallable)
-
-
-@overload
-def validate_arguments(func: None = None) -> Callable[["AnyCallableT"], "AnyCallableT"]:
-    ...
-
-
-@overload
-def validate_arguments(func: "AnyCallableT") -> "AnyCallableT":
-    ...
-
-
-def validate_arguments(func: Optional["AnyCallableT"] = None) -> Any:
-    """Decorator to validate the arguments passed to a function."""
-
-    def validate(_func: "AnyCallable") -> "AnyCallable":
-        vd = ValidatedFunction(_func)
-
-        @wraps(_func)
-        def wrapper_function(*args: Any, **kwargs: Any) -> Any:
-            return vd.call(*args, **kwargs)
-
-        wrapper_function.vd = vd  # type: ignore
-        wrapper_function.validate = vd.init_model_instance  # type: ignore
-        wrapper_function.raw_function = vd.raw_function  # type: ignore
-        wrapper_function.model = vd.model  # type: ignore
-        return wrapper_function
-
-    if func:
-        return validate(func)
-    else:
-        return validate
 
 
 ALT_V_ARGS = "v__args"
@@ -80,7 +48,7 @@ class ValidatedFunction:
         }:
             raise PydanticUserError(
                 f'"{ALT_V_ARGS}", "{ALT_V_KWARGS}", "{V_POSITIONAL_ONLY_NAME}" and "{V_DUPLICATE_KWARGS}" '
-                f'are not permitted as argument names when using the "{validate_arguments.__name__}" decorator',
+                "are not permitted as argument names when using the ValidatedFunction wrapper",
                 code=None,
             )
 
