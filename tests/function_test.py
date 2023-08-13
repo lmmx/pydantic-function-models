@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from pytest import mark
 
 from pydantic_function_models.validated_function import ValidatedFunction
