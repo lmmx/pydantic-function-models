@@ -14,7 +14,6 @@ from typing import (
 )
 
 from pydantic.alias_generators import to_pascal
-from pydantic.errors import PydanticUserError
 from pydantic.functional_validators import field_validator
 from pydantic.main import BaseModel, create_model
 
@@ -42,18 +41,6 @@ class ValidatedFunction:
         parameters: Mapping[str, Parameter] = f_sig.parameters
         param_models = Signature.model_validate(f_sig, from_attributes=True).parameters
         param_models
-
-        if parameters.keys() & {
-            ALT_V_ARGS,
-            ALT_V_KWARGS,
-            V_POSITIONAL_ONLY_NAME,
-            V_DUPLICATE_KWARGS,
-        }:
-            raise PydanticUserError(
-                f'"{ALT_V_ARGS}", "{ALT_V_KWARGS}", "{V_POSITIONAL_ONLY_NAME}" and "{V_DUPLICATE_KWARGS}" '
-                "are not permitted as argument names when using the ValidatedFunction wrapper",
-                code=None,
-            )
 
         self.raw_function = function
         self.arg_mapping: dict[int, str] = {}
