@@ -37,15 +37,13 @@ V_DUPLICATE_KWARGS = "v__duplicate_kwargs"
 
 class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
-        f_sig = signature(function)
-        parameters: Mapping[str, Parameter] = f_sig.parameters
+        sig = signature(function)
+        parameters: Mapping[str, Parameter] = sig.parameters
         type_hints: dict[str, Any] = get_type_hints(function, include_extras=True)
         self.sig_model = Signature.model_validate(
-            f_sig,
-            from_attributes=True,
-            context=type_hints,
+            sig, from_attributes=True, context=type_hints
         )
-        self.raw_function = function
+        self.source_name = function.__name__
         self.v_args_name = "args"
         self.v_kwargs_name = "kwargs"
         fields: dict[str, tuple[Any, Any]] = {}
@@ -193,7 +191,5 @@ class ValidatedFunction:
                 raise TypeError(f"multiple values for argument{plural}: {keys}")
 
         self.model = create_model(
-            to_pascal(self.raw_function.__name__),
-            __base__=DecoratorBaseModel,
-            **fields,
+            to_pascal(self.source_name), __base__=DecoratorBaseModel, **fields
         )
