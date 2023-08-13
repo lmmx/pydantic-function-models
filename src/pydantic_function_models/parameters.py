@@ -1,5 +1,5 @@
 from inspect import _ParameterKind as Kind
-from typing import Any, Collection, Literal, Mapping, Union
+from typing import Any, Collection, Dict, List, Literal, Mapping, Tuple, Union
 
 from pydantic import (
     BaseModel,
@@ -10,6 +10,11 @@ from pydantic import (
 )
 
 __all__ = ["Parameter", "Signature"]
+
+ALT_V_ARGS = "v__args"
+ALT_V_KWARGS = "v__kwargs"
+V_POSITIONAL_ONLY_NAME = "v__positional_only"
+V_DUPLICATE_KWARGS = "v__duplicate_kwargs"
 
 
 class ReservedParameterName(RootModel):
@@ -29,6 +34,7 @@ class Parameter(BaseModel):
     annotation: Any  # | inspect.Parameter._empty
     default: Any  # | inspect.Parameter._empty
     kind: Kind
+    empty: Any
 
     @field_validator("name", mode="after")
     @classmethod
@@ -43,8 +49,16 @@ class Parameter(BaseModel):
         return self.kind in [Kind.POSITIONAL_ONLY, Kind.POSITIONAL_OR_KEYWORD]
 
     @property
+    def is_positional_or_kw(self) -> bool:
+        return self.kind == Kind.POSITIONAL_OR_KEYWORD
+
+    @property
     def is_positional_only(self) -> bool:
         return self.kind == Kind.POSITIONAL_ONLY
+
+    @property
+    def is_kw_only(self) -> bool:
+        return self.kind == Parameter.KEYWORD_ONLY
 
     @property
     def is_var_pos(self) -> bool:
@@ -62,28 +76,71 @@ class Parameter(BaseModel):
     def takes_kwarg(self) -> bool:
         return self.kind == Kind.VAR_KEYWORD
 
+    @property
+    def is_untyped(self) -> bool:
+        return self.annotation is self.empty
+
+    @property
+    def has_no_default(self) -> bool:
+        return self.default is self.empty
+
 
 class Signature(BaseModel):
     parameters: list[Parameter]
     type_hints: dict[str, Any] = {}
+    fields: dict[str, tuple[Any, Any]] = {}
+    v_args_name: str = "args"
+    v_kwargs_name: str = "kwargs"
 
     @model_validator(mode="after")
     @classmethod
-    def set_type_hints(cls, values: "Signature", info: ValidationInfo) -> dict:
+    def set_type_hints(cls, values: "Signature", info: ValidationInfo) -> "Signature":
         values.type_hints = info.context
         return values
 
-    @property
-    def v_args_name(self) -> str:
-        return next((p.name for p in self.parameters[::-1] if p.is_var_pos), "args")
+    @model_validator(mode="after")
+    @classmethod
+    def set_fields(cls, self: "Signature") -> "Signature":
+        self.fields = self.make_fields()
+        return self
 
-    @property
-    def v_kwargs_name(self) -> str:
-        return next((p.name for p in self.parameters[::-1] if p.is_var_kw), "kwargs")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.index_args()
+    def make_fields(self) -> dict[str, tuple[Any, Any]]:
+        """
+        Make tuples of (annotation, default) for each parameter.
+        """
+        fields = {
+            p.name: (
+                (Any if p.is_untyped else self.type_hints[p.name]),
+                (... if p.has_no_default else p.default),
+            )
+            for p in self.parameters
+            if (p.is_positional_only or p.is_positional_or_kw or p.is_kw_only)
+        }
+        for p in self.parameters:
+            annotation = Any if p.annotation is p.empty else self.type_hints[p.name]
+            if p.is_positional_only:
+                fields[V_POSITIONAL_ONLY_NAME] = List[str], None
+            elif p.is_positional_or_kw:
+                fields[V_DUPLICATE_KWARGS] = List[str], None
+            elif p.kind == Parameter.VAR_POSITIONAL:
+                # self.v_args_name = name
+                fields[p.name] = Tuple[annotation, ...], None
+            else:
+                # self.v_kwargs_name = name
+                fields[p.name] = dict[str, annotation], None  # type: ignore[valid-type]
+        # these checks avoid a clash between "args" and a field with that name
+        if not self.takes_args and self.v_args_name in fields:
+            self.v_args_name = ALT_V_ARGS
+        # same with "kwargs"
+        if not self.takes_kwargs and self.v_kwargs_name in fields:
+            self.v_kwargs_name = ALT_V_KWARGS
+        if not self.takes_args:
+            # we add the field so validation below can raise the correct exception
+            fields[self.v_args_name] = List[Any], None
+        if not self.takes_kwargs:
+            # same with kwargs
+            fields[self.v_kwargs_name] = Dict[Any, Any], None
+        return fields
 
     @field_validator("parameters", mode="before")
     @classmethod

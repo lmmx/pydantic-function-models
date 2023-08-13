@@ -41,7 +41,9 @@ class ValidatedFunction:
         parameters: Mapping[str, Parameter] = sig.parameters
         type_hints: dict[str, Any] = get_type_hints(function, include_extras=True)
         self.sig_model = Signature.model_validate(
-            sig, from_attributes=True, context=type_hints
+            sig,
+            from_attributes=True,
+            context=type_hints,
         )
         self.source_name = function.__name__
         self.v_args_name = "args"
@@ -80,8 +82,9 @@ class ValidatedFunction:
         if not self.sig_model.takes_kwargs:
             # same with kwargs
             fields[self.v_kwargs_name] = Dict[Any, Any], None
+        self.fields = fields
         self.create_model(
-            fields,
+            self.fields,
             self.sig_model.takes_args,
             self.sig_model.takes_kwargs,
         )
@@ -191,5 +194,7 @@ class ValidatedFunction:
                 raise TypeError(f"multiple values for argument{plural}: {keys}")
 
         self.model = create_model(
-            to_pascal(self.source_name), __base__=DecoratorBaseModel, **fields
+            to_pascal(self.source_name),
+            __base__=DecoratorBaseModel,
+            **fields,
         )
