@@ -41,6 +41,14 @@ class Parameter(BaseModel):
         return self.kind == Kind.POSITIONAL_ONLY
 
     @property
+    def is_var_pos(self) -> bool:
+        return self.kind == Kind.VAR_POSITIONAL
+
+    @property
+    def is_var_kw(self) -> bool:
+        return self.kind == Kind.VAR_KEYWORD
+
+    @property
     def takes_arg(self) -> bool:
         return self.kind == Kind.VAR_POSITIONAL
 
@@ -51,6 +59,14 @@ class Parameter(BaseModel):
 
 class Signature(BaseModel):
     parameters: list[Parameter]
+
+    @property
+    def v_args_name(self) -> str:
+        return next((p.name for p in self.parameters[::-1] if p.is_var_pos), "args")
+
+    @property
+    def v_kwargs_name(self) -> str:
+        return next((p.name for p in self.parameters[::-1] if p.is_var_kw), "kwargs")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
