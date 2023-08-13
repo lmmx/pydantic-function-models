@@ -1,7 +1,13 @@
 from inspect import _ParameterKind as Kind
 from typing import Any, Collection, Literal, Mapping, Union
 
-from pydantic import BaseModel, RootModel, field_validator
+from pydantic import (
+    BaseModel,
+    RootModel,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 __all__ = ["Parameter", "Signature"]
 
@@ -59,6 +65,13 @@ class Parameter(BaseModel):
 
 class Signature(BaseModel):
     parameters: list[Parameter]
+    type_hints: dict[str, Any] = {}
+
+    @model_validator(mode="after")
+    @classmethod
+    def set_type_hints(cls, values: "Signature", info: ValidationInfo) -> dict:
+        values.type_hints = info.context
+        return values
 
     @property
     def v_args_name(self) -> str:

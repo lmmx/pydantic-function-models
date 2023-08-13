@@ -39,14 +39,15 @@ class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
         f_sig = signature(function)
         parameters: Mapping[str, Parameter] = f_sig.parameters
-        self.sig_model = Signature.model_validate(f_sig, from_attributes=True)
-        self.sig_model
-
+        type_hints: dict[str, Any] = get_type_hints(function, include_extras=True)
+        self.sig_model = Signature.model_validate(
+            f_sig,
+            from_attributes=True,
+            context=type_hints,
+        )
         self.raw_function = function
         self.v_args_name = "args"
         self.v_kwargs_name = "kwargs"
-
-        type_hints = get_type_hints(function, include_extras=True)
         fields: dict[str, tuple[Any, Any]] = {}
         for i, (name, p) in enumerate(parameters.items()):
             if p.annotation is p.empty:
