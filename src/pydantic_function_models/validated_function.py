@@ -43,7 +43,6 @@ class ValidatedFunction:
         self.sig_model
 
         self.raw_function = function
-        self.positional_only_args: set[str] = set()
         self.v_args_name = "args"
         self.v_kwargs_name = "kwargs"
 
@@ -58,7 +57,6 @@ class ValidatedFunction:
             if p.kind == Parameter.POSITIONAL_ONLY:
                 fields[name] = annotation, default
                 fields[V_POSITIONAL_ONLY_NAME] = List[str], None
-                self.positional_only_args.add(name)
             elif p.kind == Parameter.POSITIONAL_OR_KEYWORD:
                 fields[name] = annotation, default
                 fields[V_DUPLICATE_KWARGS] = List[str], None
@@ -123,7 +121,7 @@ class ValidatedFunction:
         }
         for k, v in kwargs.items():
             if k in non_var_fields or k in fields_alias:
-                if k in self.positional_only_args:
+                if k in self.sig_model.positional_only_args:
                     wrong_positional_args.append(k)
                 if k in values:
                     duplicate_kwargs.append(k)

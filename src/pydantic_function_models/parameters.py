@@ -37,6 +37,10 @@ class Parameter(BaseModel):
         return self.kind in [Kind.POSITIONAL_ONLY, Kind.POSITIONAL_OR_KEYWORD]
 
     @property
+    def is_positional_only(self) -> bool:
+        return self.kind == Kind.POSITIONAL_ONLY
+
+    @property
     def takes_arg(self) -> bool:
         return self.kind == Kind.VAR_POSITIONAL
 
@@ -75,6 +79,10 @@ class Signature(BaseModel):
     @property
     def takes_kwargs(self) -> bool:
         return any(p.takes_kwarg for p in self.parameters)
+
+    @property
+    def positional_only_args(self) -> set[str]:
+        return {p.name for p in self.parameters if p.is_positional_only}
 
 
 # class _ParameterKind(IntEnum):
