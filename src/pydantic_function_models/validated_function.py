@@ -1,5 +1,4 @@
 import sys
-from functools import wraps
 from inspect import Parameter, signature
 from typing import (
     TYPE_CHECKING,
@@ -12,7 +11,6 @@ from typing import (
     Tuple,
     TypeVar,
     get_type_hints,
-    overload,
 )
 
 from pydantic.alias_generators import to_pascal
@@ -53,7 +51,7 @@ class ValidatedFunction:
             )
 
         self.raw_function = function
-        self.arg_mapping: Dict[int, str] = {}
+        self.arg_mapping: dict[int, str] = {}
         self.positional_only_args: set[str] = set()
         self.v_args_name = "args"
         self.v_kwargs_name = "kwargs"
@@ -61,7 +59,7 @@ class ValidatedFunction:
         type_hints = get_type_hints(function, include_extras=True)
         takes_args = False
         takes_kwargs = False
-        fields: Dict[str, Tuple[Any, Any]] = {}
+        fields: dict[str, tuple[Any, Any]] = {}
         for i, (name, p) in enumerate(parameters.items()):
             if p.annotation is p.empty:
                 annotation = Any
@@ -87,7 +85,7 @@ class ValidatedFunction:
             else:
                 assert p.kind == Parameter.VAR_KEYWORD, p.kind
                 self.v_kwargs_name = name
-                fields[name] = Dict[str, annotation], None  # type: ignore[valid-type]
+                fields[name] = dict[str, annotation], None  # type: ignore[valid-type]
                 takes_kwargs = True
 
         # these checks avoid a clash between "args" and a field with that name
@@ -118,10 +116,10 @@ class ValidatedFunction:
 
     def build_values(
         self,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        values: Dict[str, Any] = {}
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> dict[str, Any]:
+        values: dict[str, Any] = {}
         if args:
             arg_iter = enumerate(args)
             while True:
@@ -136,7 +134,7 @@ class ValidatedFunction:
                     values[self.v_args_name] = [a] + [a for _, a in arg_iter]
                     break
 
-        var_kwargs: Dict[str, Any] = {}
+        var_kwargs: dict[str, Any] = {}
         wrong_positional_args = []
         duplicate_kwargs = []
         fields_alias = [
@@ -175,7 +173,7 @@ class ValidatedFunction:
         var_kwargs = d.pop(self.v_kwargs_name, {})
 
         if self.v_args_name in d:
-            args_: List[Any] = []
+            args_: list[Any] = []
             in_kwargs = False
             kwargs = {}
             for name, value in d.items():
@@ -201,7 +199,7 @@ class ValidatedFunction:
 
     def create_model(
         self,
-        fields: Dict[str, Any],
+        fields: dict[str, Any],
         takes_args: bool,
         takes_kwargs: bool,
     ) -> None:
