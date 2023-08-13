@@ -18,6 +18,8 @@ from pydantic.errors import PydanticUserError
 from pydantic.functional_validators import field_validator
 from pydantic.main import BaseModel, create_model
 
+from .parameters import Signature
+
 __all__ = ["ValidatedFunction"]
 
 assert sys.version_info >= (3, 10), "typing.get_type_hints needs Python 3.10+"
@@ -36,7 +38,10 @@ V_DUPLICATE_KWARGS = "v__duplicate_kwargs"
 
 class ValidatedFunction:
     def __init__(self, function: "AnyCallable"):
-        parameters: Mapping[str, Parameter] = signature(function).parameters
+        f_sig = signature(function)
+        parameters: Mapping[str, Parameter] = f_sig.parameters
+        param_models = Signature.model_validate(f_sig, from_attributes=True).parameters
+        param_models
 
         if parameters.keys() & {
             ALT_V_ARGS,
