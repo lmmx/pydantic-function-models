@@ -36,10 +36,17 @@ class Parameter(BaseModel):
     def is_positional(self) -> bool:
         return self.kind in [Kind.POSITIONAL_ONLY, Kind.POSITIONAL_OR_KEYWORD]
 
+    @property
+    def takes_arg(self) -> bool:
+        return self.kind == Kind.VAR_POSITIONAL
+
+    @property
+    def takes_kwarg(self) -> bool:
+        return self.kind == Kind.VAR_KEYWORD
+
 
 class Signature(BaseModel):
     parameters: list[Parameter]
-    # arg_mapping: dict[int, str] = Field({}, description="Indexes of positional args")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,14 +64,17 @@ class Signature(BaseModel):
             p._meta.index = i
         return parameters
 
-    # def index_args(cls):
-    #     for p in self.parameters:
-    #         if :
-    #             self.arg_mapping[p.index] = p.name
-
     @property
     def arg_mapping(self) -> dict[int, str]:
         return {p._meta.index: p.name for p in self.parameters if p.is_positional}
+
+    @property
+    def takes_args(self) -> bool:
+        return any(p.takes_arg for p in self.parameters)
+
+    @property
+    def takes_kwargs(self) -> bool:
+        return any(p.takes_kwarg for p in self.parameters)
 
 
 # class _ParameterKind(IntEnum):

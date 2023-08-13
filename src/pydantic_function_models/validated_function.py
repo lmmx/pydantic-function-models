@@ -48,8 +48,6 @@ class ValidatedFunction:
         self.v_kwargs_name = "kwargs"
 
         type_hints = get_type_hints(function, include_extras=True)
-        takes_args = False
-        takes_kwargs = False
         fields: dict[str, tuple[Any, Any]] = {}
         for i, (name, p) in enumerate(parameters.items()):
             if p.annotation is p.empty:
@@ -69,25 +67,27 @@ class ValidatedFunction:
             elif p.kind == Parameter.VAR_POSITIONAL:
                 self.v_args_name = name
                 fields[name] = Tuple[annotation, ...], None
-                takes_args = True
             else:
                 assert p.kind == Parameter.VAR_KEYWORD, p.kind
                 self.v_kwargs_name = name
                 fields[name] = dict[str, annotation], None  # type: ignore[valid-type]
-                takes_kwargs = True
         # these checks avoid a clash between "args" and a field with that name
-        if not takes_args and self.v_args_name in fields:
+        if not self.sig_model.takes_args and self.v_args_name in fields:
             self.v_args_name = ALT_V_ARGS
         # same with "kwargs"
-        if not takes_kwargs and self.v_kwargs_name in fields:
+        if not self.sig_model.takes_kwargs and self.v_kwargs_name in fields:
             self.v_kwargs_name = ALT_V_KWARGS
-        if not takes_args:
+        if not self.sig_model.takes_args:
             # we add the field so validation below can raise the correct exception
             fields[self.v_args_name] = List[Any], None
-        if not takes_kwargs:
+        if not self.sig_model.takes_kwargs:
             # same with kwargs
             fields[self.v_kwargs_name] = Dict[Any, Any], None
-        self.create_model(fields, takes_args, takes_kwargs)
+        self.create_model(
+            fields,
+            self.sig_model.takes_args,
+            self.sig_model.takes_kwargs,
+        )
 
     def build_values(
         self,
