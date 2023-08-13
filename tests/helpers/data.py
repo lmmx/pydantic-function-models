@@ -1,4 +1,6 @@
-__all__ = ["add_json_schema"]
+import typing
+
+__all__ = ["add_json_schema", "add_fields"]
 
 add_json_schema = {
     "properties": {
@@ -16,4 +18,12 @@ add_json_schema = {
     "required": ["a", "b"],
     "title": "Add",
     "type": "object",
+}
+
+add_fields = {
+    "a": (int, ...),
+    "args": (typing.List[typing.Any], None),
+    "b": (int, ...),
+    "kwargs": (typing.Dict[typing.Any, typing.Any], None),
+    "v__duplicate_kwargs": (typing.List[str], None),
 }
