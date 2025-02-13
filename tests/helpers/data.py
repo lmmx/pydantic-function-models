@@ -22,8 +22,8 @@ add_json_schema = {
 
 add_fields = {
     "a": (int, ...),
-    "args": (typing.List[typing.Any], None),
+    "args": (list[typing.Any], None),
     "b": (int, ...),
-    "kwargs": (typing.Dict[typing.Any, typing.Any], None),
-    "v__duplicate_kwargs": (typing.List[str], None),
+    "kwargs": (dict[typing.Any, typing.Any], None),
+    "v__duplicate_kwargs": (list[str], None),
 }
