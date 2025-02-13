@@ -3,13 +3,10 @@ from inspect import signature
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
     TypeVar,
     get_type_hints,
 )
+from collections.abc import Callable
 
 from pydantic.alias_generators import to_pascal
 from pydantic.functional_validators import field_validator
@@ -110,7 +107,7 @@ class ValidatedFunction:
         class DecoratorBaseModel(BaseModel):
             @field_validator(self.sig_model.v_args_name, check_fields=False)
             @classmethod
-            def check_args(cls, v: Optional[List[Any]]) -> Optional[List[Any]]:
+            def check_args(cls, v: list[Any] | None) -> list[Any] | None:
                 if takes_args or v is None:
                     return v
 
@@ -122,8 +119,8 @@ class ValidatedFunction:
             @classmethod
             def check_kwargs(
                 cls,
-                v: Optional[Dict[str, Any]],
-            ) -> Optional[Dict[str, Any]]:
+                v: dict[str, Any] | None,
+            ) -> dict[str, Any] | None:
                 if takes_kwargs or v is None:
                     return v
 
@@ -133,7 +130,7 @@ class ValidatedFunction:
 
             @field_validator(V_POSITIONAL_ONLY_NAME, check_fields=False)
             @classmethod
-            def check_positional_only(cls, v: Optional[List[str]]) -> None:
+            def check_positional_only(cls, v: list[str] | None) -> None:
                 if v is None:
                     return
 
@@ -145,7 +142,7 @@ class ValidatedFunction:
 
             @field_validator(V_DUPLICATE_KWARGS, check_fields=False)
             @classmethod
-            def check_duplicate_kwargs(cls, v: Optional[List[str]]) -> None:
+            def check_duplicate_kwargs(cls, v: list[str] | None) -> None:
                 if v is None:
                     return
 

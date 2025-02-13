@@ -1,6 +1,7 @@
 from inspect import Parameter as _Parameter
 from inspect import _ParameterKind as Kind
-from typing import Any, Collection, Dict, List, Literal, Mapping, Tuple, Union
+from typing import Any, Literal, Union
+from collections.abc import Collection, Mapping
 
 from pydantic import (
     BaseModel,
@@ -120,12 +121,12 @@ class Signature(BaseModel):
         for p in self.parameters:
             annotation = Any if p.annotation is p.empty else self.type_hints[p.name]
             if p.is_positional_only:
-                fields[V_POSITIONAL_ONLY_NAME] = List[str], None
+                fields[V_POSITIONAL_ONLY_NAME] = list[str], None
             elif p.is_positional_or_kw:
-                fields[V_DUPLICATE_KWARGS] = List[str], None
+                fields[V_DUPLICATE_KWARGS] = list[str], None
             elif p.kind == Parameter.VAR_POSITIONAL:
                 # self.v_args_name = name
-                fields[p.name] = Tuple[annotation, ...], None
+                fields[p.name] = tuple[annotation, ...], None
             else:
                 # self.v_kwargs_name = name
                 fields[p.name] = dict[str, annotation], None  # type: ignore[valid-type]
@@ -137,10 +138,10 @@ class Signature(BaseModel):
             self.v_kwargs_name = ALT_V_KWARGS
         if not self.takes_args:
             # we add the field so validation below can raise the correct exception
-            fields[self.v_args_name] = List[Any], None
+            fields[self.v_args_name] = list[Any], None
         if not self.takes_kwargs:
             # same with kwargs
-            fields[self.v_kwargs_name] = Dict[Any, Any], None
+            fields[self.v_kwargs_name] = dict[Any, Any], None
         return fields
 
     @field_validator("parameters", mode="before")
