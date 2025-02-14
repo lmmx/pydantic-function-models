@@ -1,7 +1,7 @@
+from collections.abc import Collection, Mapping
 from inspect import Parameter as _Parameter
 from inspect import _ParameterKind as Kind
 from typing import Any, Literal, Union
-from collections.abc import Collection, Mapping
 
 from pydantic import (
     BaseModel,
@@ -60,7 +60,7 @@ class Parameter(BaseModel):
 
     @property
     def is_kw_only(self) -> bool:
-        return self.kind == Parameter.KEYWORD_ONLY
+        return self.kind == Kind.KEYWORD_ONLY
 
     @property
     def is_var_pos(self) -> bool:
