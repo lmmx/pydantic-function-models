@@ -124,7 +124,7 @@ class Signature(BaseModel):
                 fields[V_POSITIONAL_ONLY_NAME] = list[str], None
             elif p.is_positional_or_kw:
                 fields[V_DUPLICATE_KWARGS] = list[str], None
-            elif p.kind == Parameter.VAR_POSITIONAL:
+            elif p.kind == Kind.VAR_POSITIONAL:
                 # self.v_args_name = name
                 fields[p.name] = tuple[annotation, ...], None
             else:
