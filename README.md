@@ -30,7 +30,7 @@ Below is a general overview of how to use **pydantic-function-models** in your o
 
 This library does **not** provide a CLI. All functionality is accessed by importing and using its classes in Python code. The remaining “Examples” section demonstrates typical usage patterns.
 
-#### Example 1: Basic Validated Function
+#### Example: Basic Validated Function
 
 ```python
 from pydantic_function_models import ValidatedFunction
@@ -53,107 +53,7 @@ result = add(**validated.model_dump(exclude_unset=True))
 print(result)  # 3
 ```
 
-In this example, `ValidatedFunction` creates an internal Pydantic model that enforces integer values for `a` and `b`. If you passed a string for `a` or `b`, it would raise a `ValidationError`.
-
-#### Example 2: Handling Extra Arguments
-
-```python
-def concat(prefix: str, *values: str, suffix: str = "") -> str:
-    return prefix + " ".join(values) + suffix
-
-vf_concat = ValidatedFunction(concat)
-
-# We'll try both positional and keyword
-args_to_validate = ("Hello,", "world!", "pydantic!")
-kwargs_to_validate = {"suffix": " :)"}
-
-validated = vf_concat.model.model_validate({
-    "prefix": args_to_validate[0],
-    "args": list(args_to_validate[1:]),   # Internal var-positional
-    "suffix": kwargs_to_validate["suffix"]
-})
-result = concat(**validated.model_dump(exclude_unset=True))
-
-print(result)  # "Hello, world! pydantic! :)"
-```
-
-Here, the function has a variable number of positional arguments (`*values`) plus a keyword argument (`suffix`). The library accommodates these via internal models (`args`/`kwargs` fields).
-
-#### Example 3: Invalid or Missing Arguments
-
-```python
-from pydantic import ValidationError
-
-def multiply(a: int, b: int) -> int:
-    return a * b
-
-vf_multiply = ValidatedFunction(multiply)
-
-try:
-    # Passing a string instead of an int for "b"
-    vf_multiply.model.model_validate({"a": 2, "b": "not-an-integer"})
-except ValidationError as e:
-    print(e)
-    # This will display a Pydantic ValidationError explaining the type mismatch
-```
-
-#### Example 4: Disallowed (Reserved) Parameter Names
-
-```python
-# The parameter name 'v__args' is reserved and will raise a ValidationError
-def bad_func(v__args: list[str]):
-    return "This won't work"
-
-try:
-    vf_bad = ValidatedFunction(bad_func)
-except ValidationError as e:
-    print("ValidationError:", e)
-```
-
-Because certain parameter names (e.g., `v__args`, `v__kwargs`) are used internally, they are explicitly disallowed.
-
-#### Example 5: Examining the Internal Signature
-
-```python
-from pydantic_function_models import ValidatedFunction
-
-def greet(name: str, times: int = 1) -> None:
-    for _ in range(times):
-        print(f"Hello, {name}!")
-
-vf_greet = ValidatedFunction(greet)
-print(vf_greet.sig_model.parameters)
-# A structured list describing each parameter’s name, annotation, default, kind, etc.
-```
-
-This reveals the internal inspection of Python’s `inspect.Signature` stored in a Pydantic model.
-
-#### Example 6: Working with the Pydantic Model Directly
-
-```python
-# The `.model` attribute is a dynamically generated Pydantic model:
-my_model = vf_greet.model
-
-# We can introspect or even call .model_json_schema() on it:
-print(my_model.model_json_schema())
-```
-
-This can be useful if you need to generate or document JSON schemas for function arguments.
-
-#### Example 7: Custom Handling of Positional-Only Arguments
-
-```python
-# Python 3.8+ can declare positional-only args:
-def positional_only(a, /, b: int) -> int:
-    return a + b
-
-vf_pos_only = ValidatedFunction(positional_only)
-values = vf_pos_only.build_values(args=(1, 2), kwargs={})
-validated = vf_pos_only.model.model_validate(values)
-print(positional_only(**validated.model_dump(exclude_unset=True)))  # 3
-```
-
-This demonstrates how the library checks for positional-only arguments, ensuring they aren’t used as keywords.
+Here, `ValidatedFunction` creates an internal Pydantic model that enforces integer values for `a` and `b`. If you passed a string for `a` or `b`, it would raise a `ValidationError`.
 
 ### Library Usage
 
@@ -163,10 +63,10 @@ Internally, each `ValidatedFunction` builds a Pydantic model representing the fu
 
 ## Project Structure
 
-- **`validated_function.py`**: Core logic for `ValidatedFunction`, which encapsulates argument validation and Pydantic model generation.
-- **`parameters.py`**: Model definitions for function parameters/signatures, including checks for reserved argument names.
-- **`__init__.py`**: Declares the package version and exposes primary imports.
-- **`tests/`**: Contains tests demonstrating usage and verifying correctness (e.g. using `pytest`).
+Take a look at the internals here:
+
+- `validated_function.py`: Core logic for `ValidatedFunction`, which encapsulates argument validation and Pydantic model generation.
+- `parameters.py`: Model definitions for function parameters/signatures, with checks for reserved argument names.
 
 ## Contributing
 
