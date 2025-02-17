@@ -48,7 +48,7 @@ validated = vf.model.model_validate({
     "a": args_to_validate[0],
     "b": kwargs_to_validate["b"]
 })
-result = add(**validated.dict(exclude_unset=True))
+result = add(**validated.model_dump(exclude_unset=True))
 
 print(result)  # 3
 ```
@@ -72,7 +72,7 @@ validated = vf_concat.model.model_validate({
     "args": list(args_to_validate[1:]),   # Internal var-positional
     "suffix": kwargs_to_validate["suffix"]
 })
-result = concat(**validated.dict(exclude_unset=True))
+result = concat(**validated.model_dump(exclude_unset=True))
 
 print(result)  # "Hello, world! pydantic! :)"
 ```
@@ -150,7 +150,7 @@ def positional_only(a, /, b: int) -> int:
 vf_pos_only = ValidatedFunction(positional_only)
 values = vf_pos_only.build_values(args=(1, 2), kwargs={})
 validated = vf_pos_only.model.model_validate(values)
-print(positional_only(**validated.dict(exclude_unset=True)))  # 3
+print(positional_only(**validated.model_dump(exclude_unset=True)))  # 3
 ```
 
 This demonstrates how the library checks for positional-only arguments, ensuring they aren’t used as keywords.
