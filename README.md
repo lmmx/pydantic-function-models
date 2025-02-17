@@ -17,9 +17,8 @@ pip install pydantic-function-models
 
 ## Features
 
-- **Automatic argument validation**: Wrap any Python function to validate its arguments (positional, keyword, etc.) using Pydantic.
-- **Support for advanced typing**: Leverages Python 3.10+ type hints, including `Union`, generics, and more.
-- **Seamless migration from Pydantic v1**: Provides a `ValidatedFunction` class ported to v2, for those who relied on `ValidatedFunction` in v1.
+- **Signature modelling**: Wrap any Python function to model its signature (positional, keyword, etc.) using Pydantic. Note that if you are after just **validation** (whether the arguments are valid) then  you want [validate call](https://docs.pydantic.dev/latest/api/validate_call/)
+- **Painless migration from Pydantic v1**: Provides a `ValidatedFunction` class ported to v2, for those who relied on `ValidatedFunction` in v1.
 - **Clear error messages**: Raises Pydantic `ValidationError` with helpful details if input arguments do not match the declared types.
 - **Reserved name checks**: Prevents usage of special parameter names (e.g., `v__args`, `v__kwargs`) that could conflict with internal validation logic.
 
