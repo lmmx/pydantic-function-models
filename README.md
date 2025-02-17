@@ -44,7 +44,7 @@ vf = ValidatedFunction(add)
 args_to_validate = (1,)
 kwargs_to_validate = {"b": 2}
 
-validated = vf.model.parse_obj({
+validated = vf.model.model_validate({
     "a": args_to_validate[0],
     "b": kwargs_to_validate["b"]
 })
@@ -67,7 +67,7 @@ vf_concat = ValidatedFunction(concat)
 args_to_validate = ("Hello,", "world!", "pydantic!")
 kwargs_to_validate = {"suffix": " :)"}
 
-validated = vf_concat.model.parse_obj({
+validated = vf_concat.model.model_validate({
     "prefix": args_to_validate[0],
     "args": list(args_to_validate[1:]),   # Internal var-positional
     "suffix": kwargs_to_validate["suffix"]
@@ -91,7 +91,7 @@ vf_multiply = ValidatedFunction(multiply)
 
 try:
     # Passing a string instead of an int for "b"
-    vf_multiply.model.parse_obj({"a": 2, "b": "not-an-integer"})
+    vf_multiply.model.model_validate({"a": 2, "b": "not-an-integer"})
 except ValidationError as e:
     print(e)
     # This will display a Pydantic ValidationError explaining the type mismatch
@@ -149,7 +149,7 @@ def positional_only(a, /, b: int) -> int:
 
 vf_pos_only = ValidatedFunction(positional_only)
 values = vf_pos_only.build_values(args=(1, 2), kwargs={})
-validated = vf_pos_only.model.parse_obj(values)
+validated = vf_pos_only.model.model_validate(values)
 print(positional_only(**validated.dict(exclude_unset=True)))  # 3
 ```
 
@@ -157,7 +157,7 @@ This demonstrates how the library checks for positional-only arguments, ensuring
 
 ### Library Usage
 
-Internally, each `ValidatedFunction` builds a Pydantic model representing the function’s signature. When you call `.model.parse_obj(...)` or `.build_values(...)`, it validates the provided arguments (whether positional or keyword-based) against the signature.
+Internally, each `ValidatedFunction` builds a Pydantic model representing the function’s signature. When you call `.model.model_validate(...)` or `.build_values(...)`, it validates the provided arguments (whether positional or keyword-based) against the signature.
 
 ---
 
