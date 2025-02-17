@@ -1,0 +1,8 @@
+.venv
+.git
+dist
+*.lock
+LICENSE.txt
+.pytest_cache
+ruff_cache
+.aiignore
