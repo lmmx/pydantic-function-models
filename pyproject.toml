@@ -2,6 +2,14 @@
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[dependency-groups]
+dev = [
+  "pytest>=8.3.4",
+  "pdbpp>=0.10.3",
+  "pdm>=2.23"
+]
+test = ["pytest>=7.4"]
+
 [project]
 name = "pydantic-function-models"
 dynamic = ["version"]
@@ -23,26 +31,23 @@ classifiers = [
   'Framework :: Pydantic',
   'Framework :: Pydantic :: 2',
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13"
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
 ]
 dependencies = [
-  "pydantic>=2.1.1"
+  "pydantic>=2.1"
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 
-[project.optional-dependencies]
-dev = [
-  "pdm>=2.22.3",
-  "pdm-bump>=0.9.10",
-  "pre-commit>=4.1.0",
-  "pytest>=8.3.4"
-]
+[project.urls]
+Homepage = "https://github.com/lmmx/pydantic-function-models"
+Repository = "https://github.com/lmmx/pydantic-function-models"
+Issues = "https://github.com/lmmx/pydantic-function-models/issues"
 
 [tool.isort]
 known_first_party = ["pydantic_function_models"]
@@ -50,7 +55,5 @@ known_first_party = ["pydantic_function_models"]
 [tool.pdm]
 version = {source = "file", path = "src/pydantic_function_models/__init__.py"}
 
-[tool.pdm.dev-dependencies]
-test = [
-  "pytest>=7.4.0"
-]
+[tool.uv]
+default-groups = ["dev", "test"]

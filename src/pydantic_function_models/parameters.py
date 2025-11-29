@@ -95,14 +95,12 @@ class Signature(BaseModel):
     v_kwargs_name: str = "kwargs"
 
     @model_validator(mode="after")
-    @classmethod
-    def set_type_hints(cls, values: "Signature", info: ValidationInfo) -> "Signature":
-        values.type_hints = info.context
-        return values
+    def set_type_hints(self, info: ValidationInfo) -> "Signature":
+        self.type_hints = info.context
+        return self
 
     @model_validator(mode="after")
-    @classmethod
-    def set_fields(cls, self: "Signature") -> "Signature":
+    def set_fields(self) -> "Signature":
         self.fields = self.make_fields()
         return self
 
