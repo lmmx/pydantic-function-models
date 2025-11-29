@@ -5,6 +5,7 @@ from typing import Any, Literal, Union
 
 from pydantic import (
     BaseModel,
+    Field,
     RootModel,
     ValidationInfo,
     field_validator,
@@ -32,7 +33,7 @@ class ParameterMetadata(BaseModel):
 
 class Parameter(BaseModel):
     _meta: ParameterMetadata = ParameterMetadata()
-    name: ParameterName
+    name: ParameterName = Field(union_mode="left_to_right")
     annotation: Any  # | inspect.Parameter._empty
     default: Any  # | inspect.Parameter._empty
     kind: Kind

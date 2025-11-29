@@ -13,7 +13,12 @@ add_json_schema = {
         },
         "b": {"title": "B", "type": "integer"},
         "args": {"default": None, "items": {}, "title": "Args", "type": "array"},
-        "kwargs": {"default": None, "title": "Kwargs", "type": "object"},
+        "kwargs": {
+            "additionalProperties": True,
+            "default": None,
+            "title": "Kwargs",
+            "type": "object",
+        },
     },
     "required": ["a", "b"],
     "title": "Add",

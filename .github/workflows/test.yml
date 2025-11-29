@@ -28,9 +28,9 @@ jobs:
         run: |
           set -euo pipefail
           MIN_VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.requires-python | sed 's/>=//;s/"//g')
-          
+
           LIST=$(uv python list --all-versions --output-format json)
-          
+
           CPYTHON_VERSIONS=$(echo "$LIST" | jq -c --arg min "$MIN_VERSION" '
             ($min | split(".") | {major: .[0]|tonumber, minor: .[1]|tonumber}) as $minv |
             [.[] | {v:.version_parts, t:.variant, impl:.implementation}]
@@ -41,7 +41,7 @@ jobs:
                 (.v.minor >= $minv.minor)
               ))
             | map("\(.v.major).\(.v.minor)\(if .t=="freethreaded" then "t" else "" end)")')
-          
+
           PYPY_VERSIONS=$(echo "$LIST" | jq -c --arg min "$MIN_VERSION" '
             ($min | split(".") | {major: .[0]|tonumber, minor: .[1]|tonumber}) as $minv |
             [.[] | {v:.version_parts, t:.variant, impl:.implementation}]
@@ -52,9 +52,9 @@ jobs:
                 (.v.minor >= $minv.minor)
               ))
             | map("pypy-\(.v.major).\(.v.minor)")')
-          
+
           versions=$(jq -nc --argjson a "$CPYTHON_VERSIONS" --argjson b "$PYPY_VERSIONS" '$a + $b')
-          
+
           echo "python-versions=$versions" >> $GITHUB_OUTPUT
 
   test:
