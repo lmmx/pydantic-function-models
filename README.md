@@ -24,11 +24,7 @@ pip install pydantic-function-models
 
 ## Usage
 
-Below is a general overview of how to use **pydantic-function-models** in your own code. There is no built-in command-line interface; usage is purely through Python imports.
-
-### Command-Line Interface
-
-This library does **not** provide a CLI. All functionality is accessed by importing and using its classes in Python code. The remaining “Examples” section demonstrates typical usage patterns.
+Below is a general overview of how to use **pydantic-function-models** in your own code.
 
 #### Example: Basic Validated Function
 
