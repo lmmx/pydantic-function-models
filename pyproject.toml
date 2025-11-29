@@ -12,7 +12,7 @@ test = ["pytest>=7.4"]
 
 [project]
 name = "pydantic-function-models"
-dynamic = ["version"]
+version = "0.1.10"
 description = "Migrating v1 Pydantic ValidatedFunction to v2."
 authors = [
   {name = "Louis Maddox", email = "louismmx@gmail.com"}
@@ -51,9 +51,6 @@ Issues = "https://github.com/lmmx/pydantic-function-models/issues"
 
 [tool.isort]
 known_first_party = ["pydantic_function_models"]
-
-[tool.pdm]
-version = {source = "file", path = "src/pydantic_function_models/__init__.py"}
 
 [tool.uv]
 default-groups = ["dev", "test"]
