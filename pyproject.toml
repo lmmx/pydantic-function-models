@@ -12,7 +12,7 @@ test = ["pytest>=7.4"]
 
 [project]
 name = "pydantic-function-models"
-version = "0.1.10"
+version = "0.1.11"
 description = "Migrating v1 Pydantic ValidatedFunction to v2."
 authors = [
   {name = "Louis Maddox", email = "louismmx@gmail.com"}
