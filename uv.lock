@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-04-13T08:20:55.326573243Z"
+exclude-newer = "2026-04-13T08:34:21.283766221Z"
 exclude-newer-span = "P3D"
 
 [[package]]
@@ -221,7 +221,7 @@ wheels = [
 
 [[package]]
 name = "pydantic-function-models"
-version = "0.1.11"
+version = "0.1.12"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
