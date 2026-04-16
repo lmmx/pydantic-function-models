@@ -1,7 +1,6 @@
 # Pydantic Function Models
 
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![pdm-managed](https://img.shields.io/badge/pdm-managed-blueviolet)](https://pdm.fming.dev)
 [![PyPI](https://img.shields.io/pypi/v/pydantic-function-models.svg)](https://pypi.org/project/pydantic-function-models)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pydantic-function-models.svg)](https://pypi.org/project/pydantic-function-models)
 [![License](https://img.shields.io/pypi/l/pydantic-function-models.svg)](https://pypi.python.org/pypi/pydantic-function-models)
