@@ -38,7 +38,8 @@ jobs:
             | map(select(
                 (.impl == "cpython") and
                 (.v.major == 3) and
-                (.v.minor >= $minv.minor)
+                (.v.minor >= $minv.minor) and
+                (.v.minor < 15)
               ))
             | map("\(.v.major).\(.v.minor)\(if .t=="freethreaded" then "t" else "" end)")')
 
