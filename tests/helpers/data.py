@@ -1,6 +1,6 @@
 import typing
 
-__all__ = ["add_json_schema", "add_fields"]
+__all__ = ["add_fields", "add_json_schema"]
 
 add_json_schema = {
     "properties": {

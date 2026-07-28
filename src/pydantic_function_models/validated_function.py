@@ -1,4 +1,5 @@
 import sys
+from collections.abc import Callable
 from inspect import signature
 from typing import (
     TYPE_CHECKING,
@@ -6,7 +7,6 @@ from typing import (
     TypeVar,
     get_type_hints,
 )
-from collections.abc import Callable
 
 from pydantic.alias_generators import to_pascal
 from pydantic.functional_validators import field_validator
