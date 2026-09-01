@@ -30,8 +30,10 @@ Below is a general overview of how to use **pydantic-function-models** in your o
 ```python
 from pydantic_function_models import ValidatedFunction
 
+
 def add(a: int, b: int) -> int:
     return a + b
+
 
 vf = ValidatedFunction(add)
 
@@ -39,10 +41,9 @@ vf = ValidatedFunction(add)
 args_to_validate = (1,)
 kwargs_to_validate = {"b": 2}
 
-validated = vf.model.model_validate({
-    "a": args_to_validate[0],
-    "b": kwargs_to_validate["b"]
-})
+validated = vf.model.model_validate(
+    {"a": args_to_validate[0], "b": kwargs_to_validate["b"]}
+)
 result = add(**validated.model_dump(exclude_unset=True))
 
 print(result)  # 3
