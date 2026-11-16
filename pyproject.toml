@@ -14,7 +14,7 @@ name = "pydantic-function-models"
 version = "0.1.12"
 description = "Migrating v1 Pydantic ValidatedFunction to v2."
 authors = [
-  {name = "Louis Maddox", email = "louismmx@gmail.com"}
+  { name = "Louis Maddox", email = "louismmx@gmail.com" }
 ]
 keywords = [
   'pydantic',
@@ -41,7 +41,7 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [project.urls]
 Homepage = "https://github.com/lmmx/pydantic-function-models"
